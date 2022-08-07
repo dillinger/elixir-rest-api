@@ -64,6 +64,27 @@ defmodule RestApi.Router do
     end
   end
 
+  get "/post/:id" do
+    doc = Mongo.find_one(:mongo, "Posts", %{_id: BSON.ObjectId.decode!(id)})
+
+    case doc do
+      nil ->
+        send_resp(conn, 404, "Not found")
+
+      %{} ->
+        post =
+          JSON.normaliseMongoId(doc)
+          |> Jason.encode!()
+
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(200, post)
+
+      {:error, _} ->
+        send_resp(conn, 500, "Somthing went wrong")
+    end
+  end
+
   match _ do
     send_resp(conn, 404, "Not Found")
   end
