@@ -118,6 +118,14 @@ defmodule RestApi.Router do
     end
   end
 
+  delete "post/:id" do
+    Mongo.delete_one!(:mongo, "Posts", %{_id: BSON.ObjectId.decode!(id)})
+
+    conn
+    |> put_resp_content_type("application/json")
+    |> send_resp(200, Jason.encode!(%{id: id}))
+  end
+
   match _ do
     send_resp(conn, 404, "Not Found")
   end
