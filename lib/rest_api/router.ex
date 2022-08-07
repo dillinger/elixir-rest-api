@@ -1,4 +1,5 @@
 defmodule RestApi.Router do
+  alias RestApi.JSONUtils, as: JSON
   # Bring Plug.Router module into scope
   use Plug.Router
 
@@ -25,6 +26,18 @@ defmodule RestApi.Router do
       {:ok, _res} -> send_resp(conn, 200, "Who's there?")
       {:error, _err} -> send_resp(conn, 500, "Somthing went wromng")
     end
+  end
+
+  get "/posts" do
+    posts =
+      Mongo.find(:mongo, "Posts", %{})
+      |> Enum.map(&JSON.normaliseMongoId/1)
+      |> Enum.to_list()
+      |> Jason.encode!()
+
+    conn
+    |> put_resp_content_type("application/json")
+    |> send_resp(200, posts)
   end
 
   match _ do
